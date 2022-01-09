@@ -2,48 +2,47 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace nmf_view
+namespace nmf_view;
+
+class Utilities
 {
-    class Utilities
+    [DllImport("shell32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool IsUserAnAdmin();
+
+    internal static void CopyToClipboard(string s)
     {
-        [DllImport("shell32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool IsUserAnAdmin();
+        DataObject data = new DataObject();
+        data.SetData(DataFormats.Text, s);
+        Clipboard.SetDataObject(data, true);
+    }
 
-        internal static void CopyToClipboard(string s)
+    internal static void OpenRegeditTo(string registryKeyPath)
+    {
+        Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit", "LastKey", $"Computer\\{registryKeyPath}");
+        try
         {
-            DataObject data = new DataObject();
-            data.SetData(DataFormats.Text, s);
-            Clipboard.SetDataObject(data, true);
+            Process.Start("regedit.exe", "/m");
         }
-
-        internal static void OpenRegeditTo(string registryKeyPath)
+        catch
         {
-            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit", "LastKey", $"Computer\\{registryKeyPath}");
-            try
-            {
-                Process.Start("regedit.exe", "/m");
-            }
-            catch
-            {
-                /* User may abort */
-            }
+            /* User may abort */
         }
+    }
 
-        /// <summary>
-        /// Open Windows Explorer with the specified file selected.
-        /// </summary>
-        /// <param name="manifestFilename"></param>
-        internal static void OpenExplorerTo(string manifestFilename)
+    /// <summary>
+    /// Open Windows Explorer with the specified file selected.
+    /// </summary>
+    /// <param name="manifestFilename"></param>
+    internal static void OpenExplorerTo(string manifestFilename)
+    {
+        try
         {
-            try
-            {
-                Process.Start("explorer.exe", $"/select,\"{manifestFilename}\"");
-            }
-            catch
-            {
-                /* User may abort */
-            }
+            Process.Start("explorer.exe", $"/select,\"{manifestFilename}\"");
+        }
+        catch
+        {
+            /* User may abort */
         }
     }
 }

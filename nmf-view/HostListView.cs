@@ -1,68 +1,67 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace nmf_view
+namespace nmf_view;
+
+public class HostListView : ListView
 {
-    public class HostListView : ListView
+    string EmptyText { get; set; } = "No NativeMessaging Hosts were found in the registry.";
+
+    internal static class LVNative
     {
-        string EmptyText { get; set; } = "No NativeMessaging Hosts were found in the registry.";
+        internal const Int32 LVN_FIRST = -100;
+        internal const Int32 LVN_GETEMPTYMARKUP = LVN_FIRST - 87;
 
-        internal static class LVNative
+        [StructLayout(LayoutKind.Sequential)]
+        public struct NMHDR
         {
-            internal const Int32 LVN_FIRST = -100;
-            internal const Int32 LVN_GETEMPTYMARKUP = LVN_FIRST - 87;
-
-            [StructLayout(LayoutKind.Sequential)]
-            public struct NMHDR
-            {
-                public IntPtr hwndFrom;
-                public IntPtr idFrom;
-                public Int32 code;
-            }
-            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-            public struct NMLVEMPTYMARKUP
-            {
-                public NMHDR hdr;
-                public UInt32 dwFlags;
-
-                [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 2084)]
-                public String szMarkup;
-            }
+            public IntPtr hwndFrom;
+            public IntPtr idFrom;
+            public Int32 code;
         }
-
-        public HostListView()
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct NMLVEMPTYMARKUP
         {
-            this.DoubleBuffered = true;
-        }
+            public NMHDR hdr;
+            public UInt32 dwFlags;
 
-        public void SelectAll()
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 2084)]
+            public String szMarkup;
+        }
+    }
+
+    public HostListView()
+    {
+        this.DoubleBuffered = true;
+    }
+
+    public void SelectAll()
+    {
+        BeginUpdate();
+        foreach (ListViewItem lvi in Items)
         {
-            BeginUpdate();
-            foreach (ListViewItem lvi in Items)
-            {
-                lvi.Selected = true;
-            }
-            EndUpdate();
+            lvi.Selected = true;
         }
+        EndUpdate();
+    }
 
-        protected override void WndProc(ref Message m)
+    protected override void WndProc(ref Message m)
+    {
+        switch (m.Msg)
         {
-            switch (m.Msg)
-            {
-                case 0x204E:  // WM_NOTIFY | WM_REFLECT
-                    LVNative.NMHDR nmhdr = (LVNative.NMHDR)m.GetLParam(typeof(LVNative.NMHDR));
+            case 0x204E:  // WM_NOTIFY | WM_REFLECT
+                LVNative.NMHDR nmhdr = (LVNative.NMHDR)m.GetLParam(typeof(LVNative.NMHDR));
 
-                    if (LVNative.LVN_GETEMPTYMARKUP == nmhdr.code)
-                    {
-                        var markup = (LVNative.NMLVEMPTYMARKUP)m.GetLParam(typeof(LVNative.NMLVEMPTYMARKUP));
-                        markup.szMarkup = EmptyText;
-                        markup.dwFlags = 1;     // EMF_CENTERED;
-                        Marshal.StructureToPtr(markup, m.LParam, true);
-                        m.Result = (IntPtr)1;
-                        return;
-                    }
-                    break;
-            }
-            base.WndProc(ref m);
+                if (LVNative.LVN_GETEMPTYMARKUP == nmhdr.code)
+                {
+                    var markup = (LVNative.NMLVEMPTYMARKUP)m.GetLParam(typeof(LVNative.NMLVEMPTYMARKUP));
+                    markup.szMarkup = EmptyText;
+                    markup.dwFlags = 1;     // EMF_CENTERED;
+                    Marshal.StructureToPtr(markup, m.LParam, true);
+                    m.Result = (IntPtr)1;
+                    return;
+                }
+                break;
         }
+        base.WndProc(ref m);
     }
 }

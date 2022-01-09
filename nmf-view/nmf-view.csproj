@@ -8,5 +8,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <!-- enable this to turn on nullable reference types -->
         <Nullable>disable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 </Project>

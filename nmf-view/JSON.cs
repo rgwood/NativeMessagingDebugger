@@ -7,11 +7,9 @@
 /// Licensed under the http://www.opensource.org/licenses/mit-license.php by Patrick van Bergen.
 /// It has been heavily modified based on real-world experience.
 ///</remarks>
-using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Text;
 
 namespace nmf_view
